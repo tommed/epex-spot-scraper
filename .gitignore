@@ -8,6 +8,7 @@ __pycache__/
 
 # Output from program
 out.xlsx
+EpexSpotMarketResults-*.xlsx
 
 # Distribution / packaging
 .Python

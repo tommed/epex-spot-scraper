@@ -1,7 +1,12 @@
-name: Collect Today
+name: Collect Yesterday
 
 on:
-  workflow_dispatch:  # Allows manual trigger
+  # Allows manual trigger
+  workflow_dispatch: 
+  schedule:
+    # Runs at 00:05 every day
+    - cron: '5 0 * * *'
+      time-zone: 'Europe/London'
 
 jobs:
   scrape:
@@ -29,12 +34,12 @@ jobs:
       - name: Run scrape script with today's date
         run: |
           .\.env\Scripts\activate
-          $date = Get-Date -Format 'yyyy-MM-dd'
-          py scrape_epex.py --date "$date" --template template.xlsx --out out.xlsx
+          $date = $(Get-Date (Get-Date).AddDays(-1) -Format 'yyyy-MM-dd')
+          py scrape_epex.py --date "$date" --template template.xlsx --out "EpexSpotMarketResults-${date}.xlsx"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: EPEX-Spot-Results
-          path: out.xlsx
+          path: EpexSpotMarketResults-*.xlsx
           retention-days: 2
