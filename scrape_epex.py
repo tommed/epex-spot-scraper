@@ -20,6 +20,10 @@ from typing import List, Optional, Sequence
 from openpyxl import load_workbook
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
+PROD_HH = 30
+MARKET_GB = "GB"
+EPEX_MARKET = MARKET_GB
+EPEX_PRODUCT = PROD_HH
 CSS_TABLE_SELECTOR = "table.table-01 tbody tr"
 
 
@@ -86,7 +90,7 @@ def extract_rows_from_dom(page) -> List[HHRow]:
 
 
 def write_rows_to_template(
-    template_path: str, out_path: str, rows: Sequence[HHRow], start_row: int = 2, start_col: int = 2
+    template_path: str, out_path: str, rows: Sequence[HHRow], start_row: int = 2, start_col: int = 1
 ) -> None:
     """Write rows into the provided XLSX template."""
     wb = load_workbook(template_path)
@@ -170,5 +174,5 @@ if __name__ == "__main__":
     args = parse_args()
     logging.basicConfig(level=getattr(logging, args.log_level.upper(), logging.INFO),
                         format="%(levelname)s: %(message)s")
-    url = f"https://www.epexspot.com/en/market-results?market_area=GB&auction=&delivery_date={args.date}&underlying_year=&modality=Continuous&sub_modality=&technology=&data_mode=table&period=&production_period=&product=30"
+    url = f"https://www.epexspot.com/en/market-results?market_area={EPEX_MARKET}&delivery_date={args.date}&modality=Continuous&data_mode=table&product={EPEX_PRODUCT}"
     run(url, args.template, args.out, timeout_ms=args.timeout_ms)
