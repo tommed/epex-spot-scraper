@@ -7,9 +7,9 @@ and write data rows into the first sheet of a provided XLSX template.
 - Extracts numeric data from `.js-table-values table tbody tr`
 - Ignores rows containing only hyphens (hour headers)
 - Assumes ascending half-hour rows (HH 1..48)
-- Writes from cell B2 onwards (row 1 is left for headers)
+- Writes from cell B1 onwards (row A is left for headers)
 
-Python 3.12.8
+Presumed Python 3.12.8
 """
 
 import argparse
@@ -119,11 +119,13 @@ def run(url: str, template: str, out: str, timeout_ms: int = 30000) -> None:
             "Chrome/120.0.0.0 Safari/537.36"
         ))
         page = context.new_page()
+
         # Debugging file
         #html = page.content()
         #with open("debug.html", "w", encoding="utf-8") as f:
         #    f.write(html)
 
+        # Scrape procedure
         try:
             page.goto(url, timeout=timeout_ms)
             # Wait for the table to be present (not necessarily visible)
@@ -146,14 +148,17 @@ def run(url: str, template: str, out: str, timeout_ms: int = 30000) -> None:
             logging.debug("Page HTML snippet:\n%s", html_preview)
             raise SystemExit(2)
 
+        # Extract
         rows = extract_rows_from_dom(page)
         if not rows:
             logging.error("No data rows found; verify table selector or structure.")
             raise SystemExit(3)
 
+        # Load
         write_rows_to_template(template, out, rows)
         logging.info("Wrote %d rows to %s", len(rows), out)
 
+        # Teardown
         context.close()
         browser.close()
 
@@ -161,7 +166,6 @@ def run(url: str, template: str, out: str, timeout_ms: int = 30000) -> None:
 
 def parse_args():
     p = argparse.ArgumentParser(description="Scrape EPEX Spot GB 30-min table into an XLSX template")
-    #p.add_argument("--url", required=True, help="Page URL to scrape")
     p.add_argument("--date", required=True, help="The date to grab data for")
     p.add_argument("--template", required=True, help="Path to input XLSX template")
     p.add_argument("--out", required=True, help="Output XLSX path")
@@ -169,10 +173,13 @@ def parse_args():
     p.add_argument("--log-level", default="INFO", help="Logging level")
     return p.parse_args()
 
+def get_epex_url(market, date, product):
+    return f"https://www.epexspot.com/en/market-results?market_area={EPEX_MARKET}&delivery_date={args.date}&modality=Continuous&data_mode=table&product={EPEX_PRODUCT}"
+
 
 if __name__ == "__main__":
     args = parse_args()
     logging.basicConfig(level=getattr(logging, args.log_level.upper(), logging.INFO),
                         format="%(levelname)s: %(message)s")
-    url = f"https://www.epexspot.com/en/market-results?market_area={EPEX_MARKET}&delivery_date={args.date}&modality=Continuous&data_mode=table&product={EPEX_PRODUCT}"
+    url = get_epex_url(EPEX_MARKET, args.date, EPEX_PRODUCT)
     run(url, args.template, args.out, timeout_ms=args.timeout_ms)
