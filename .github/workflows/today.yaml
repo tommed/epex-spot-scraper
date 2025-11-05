@@ -1,0 +1,39 @@
+name: Collect Today
+
+on:
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  scrape:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Create virtual environment
+        run: py -3.12 -m venv .env
+
+      # py -m pip install --upgrade pip
+      - name: Activate venv and install dependencies
+        run: |
+          .\.env\Scripts\activate
+          py -m pip install -r requirements.txt
+          py -m playwright install chromium
+
+      - name: Run scrape script with today's date
+        run: |
+          .\.env\Scripts\activate
+          $date = Get-Date -Format 'yyyy-MM-dd'
+          py scrape_epex.py --date "$date" --template template.xlsx --out out.xlsx
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: out-file
+          path: out.xlsx
