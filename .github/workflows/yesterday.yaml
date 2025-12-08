@@ -47,5 +47,5 @@ jobs:
       - uses: fixpoint/azblob-upload-artifact@v4
         with:
           connection-string: ${{ secrets.AZURE_CONNECTION_STRING }}
-          name: my-artifact
+          name: epex-spot-results
           path: EpexSpotMarketResults-*.xlsx
