@@ -43,3 +43,11 @@ jobs:
           name: EPEX-Spot-Results
           path: EpexSpotMarketResults-*.xlsx
           retention-days: 2
+
+      - uses: bacongobbler/azure-blob-storage-upload@main
+        with:
+          source_dir: .
+          container_name: epexresultsxlsx
+          connection_string: ${{ secrets.AZURE_CONNECTION_STRING }}
+          extra_args: '--pattern EpexSpotMarketResults-*.xlsx'
+          overwrite: 'false'
