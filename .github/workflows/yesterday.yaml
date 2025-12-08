@@ -44,10 +44,8 @@ jobs:
           path: EpexSpotMarketResults-*.xlsx
           retention-days: 2
 
-      - uses: bacongobbler/azure-blob-storage-upload@main
+      - uses: fixpoint/azblob-upload-artifact@v4
         with:
-          source_dir: .
-          container_name: epexresultsxlsx
-          connection_string: ${{ secrets.AZURE_CONNECTION_STRING }}
-          extra_args: '--pattern EpexSpotMarketResults-*.xlsx'
-          overwrite: 'false'
+          connection-string: ${{ secrets.AZURE_CONNECTION_STRING }}
+          name: my-artifact
+          path: EpexSpotMarketResults-*.xlsx
