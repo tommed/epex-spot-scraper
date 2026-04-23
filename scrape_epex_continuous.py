@@ -1,4 +1,4 @@
-# path: scripts/scrape_epex.py
+# path: scripts/scrape_epex_continuous.py
 #!/usr/bin/env python3
 """
 Scrape the EPEX Spot GB 30-min Continuous market results table
