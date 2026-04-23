@@ -4,6 +4,11 @@ description: Collects EPEX Spot GB Day-Ahead hourly auction prices for tomorrow 
 on:
   # Allows manual trigger
   workflow_dispatch:
+    inputs:
+      date:
+        description: 'Date to scrape (yyyy-MM-dd). Defaults to tomorrow if not provided.'
+        required: false
+        type: string
   schedule:
     # Runs at 09:35 every day (London time)
     - cron: '35 9 * * *'
@@ -34,7 +39,8 @@ jobs:
       - name: Run scrape script with tomorrow's date
         run: |
           .\.env\Scripts\activate
-          $date = $(Get-Date (Get-Date).AddDays(1) -Format 'yyyy-MM-dd')
+          $inputDate = "${{ github.event.inputs.date }}"
+          if ($inputDate -ne "") { $date = $inputDate } else { $date = $(Get-Date (Get-Date).AddDays(1) -Format 'yyyy-MM-dd') }
           py scrape_epex_da.py --date "$date" --template template-da.xlsx --out "EpexSpotDA-${date}.xlsx"
 
       - name: Upload artifact
@@ -43,6 +49,7 @@ jobs:
           name: EPEX-Spot-DA-Results
           path: EpexSpotDA-*.xlsx
           retention-days: 2
+          if-no-files-found: error
 
       - uses: fixpoint/azblob-upload-artifact@v4
         with:
