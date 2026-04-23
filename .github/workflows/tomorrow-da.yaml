@@ -1,0 +1,51 @@
+name: Collect Tomorrow (DA)
+description: Collects EPEX Spot GB Day-Ahead Auction prices for tomorrow and uploads the results as an artifact and to Azure Blob Storage.
+
+on:
+  # Allows manual trigger
+  workflow_dispatch:
+  schedule:
+    # Runs at 09:35 every day (London time)
+    - cron: '35 9 * * *'
+      time-zone: 'Europe/London'
+
+jobs:
+  scrape:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Create virtual environment
+        run: py -3.12 -m venv .env
+
+      - name: Activate venv and install dependencies
+        run: |
+          .\.env\Scripts\activate
+          py -m pip install -r requirements.txt
+          py -m playwright install chromium
+
+      - name: Run scrape script with tomorrow's date
+        run: |
+          .\.env\Scripts\activate
+          $date = $(Get-Date (Get-Date).AddDays(1) -Format 'yyyy-MM-dd')
+          py scrape_epex_da.py --date "$date" --template template-da.xlsx --out "EpexSpotDA-${date}.xlsx"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EPEX-Spot-DA-Results
+          path: EpexSpotDA-*.xlsx
+          retention-days: 2
+
+      - uses: fixpoint/azblob-upload-artifact@v4
+        with:
+          connection-string: ${{ secrets.AZURE_CONNECTION_STRING }}
+          name: epex-spot-da-results
+          path: EpexSpotDA-*.xlsx
