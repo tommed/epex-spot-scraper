@@ -151,8 +151,10 @@ def run(url: str, template: str, out: str, timeout_ms: int = 30000) -> None:
 def get_epex_url(market: str, date: str, product: int) -> str:
     return (
         f"https://www.epexspot.com/en/market-results"
-        f"?market_area={market}&delivery_date={date}"
-        f"&modality=Auction&data_mode=table&product={product}"
+        f"?market_area={market}&auction={market}"
+        f"&trading_date={date}&delivery_date={date}"
+        f"&underlying_year=&modality=Auction&sub_modality=DayAhead&technology=&data_mode=table&period=&production_period="
+        #f"&modality=Auction&data_mode=table&product={product}"
     )
 
 
