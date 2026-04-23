@@ -56,3 +56,13 @@ jobs:
           connection-string: ${{ secrets.AZURE_CONNECTION_STRING }}
           name: epex-spot-da-hh-results
           path: EpexSpotDA-HH-*.xlsx
+
+      - name: Teams alert
+        uses: jdcargile/ms-teams-notification@v1.4
+        with:
+          github-token: ${{ github.token }}
+          ms-teams-webhook-uri: ${{ secrets.TEAMS_WEBHOOK }}
+          notification-summary: EPEX Spot GB DA HH Market Results Collected
+          notification-color: 17a2b8
+          timezone: Europe/London
+          verbose-logging: true
