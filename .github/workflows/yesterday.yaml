@@ -1,4 +1,4 @@
-name: Collect Yesterday
+name: Collect Yesterday (Continuous)
 
 on:
   # Allows manual trigger
@@ -35,7 +35,7 @@ jobs:
         run: |
           .\.env\Scripts\activate
           $date = $(Get-Date (Get-Date).AddDays(-1) -Format 'yyyy-MM-dd')
-          py scrape_epex_continuous.py --date "$date" --template template.xlsx --out "EpexSpotMarketResults-${date}.xlsx"
+          py scrape_epex_continuous.py --date "$date" --template template-continuous.xlsx --out "EpexSpotMarketResults-${date}.xlsx"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
