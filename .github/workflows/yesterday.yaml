@@ -1,4 +1,5 @@
 name: Collect Yesterday (Continuous)
+description: Collects EPEX Spot continuous market results (e.g. VWAP) for yesterday and uploads the results as an artifact and to Azure Blob Storage.
 
 on:
   # Allows manual trigger
