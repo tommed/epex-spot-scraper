@@ -1,13 +1,13 @@
 # path: scripts/scrape_epex_da.py
 #!/usr/bin/env python3
 """
-Scrape the EPEX Spot GB Day Ahead Auction (Hourly) market results table
+Scrape the EPEX Spot GB Day Ahead Auction market (HH) results table
 and write data rows into the first sheet of a provided XLSX template.
 
 - Extracts numeric data from `table.table-01 tbody tr`
 - Ignores rows containing only hyphens (section dividers)
-- Writes Hour (HH:00) into column A, then Buy Volume, Sell Volume, Volume, Price
-- Expects 23, 24 or 25 rows (one per delivery hour; 23/25 on DST transitions)
+- Writes Hour (HH:MM) into column A, then Buy Volume, Sell Volume, Volume, Price
+- Expects 46, 48 or 50 rows (one per delivery hour; 46 or 50 on DST transitions)
 
 Presumed Python 3.12.8
 """
@@ -21,16 +21,16 @@ from openpyxl import load_workbook
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 MARKET_GB = "GB"
-PROD_HOUR = 60
+PROD_HOUR = 30
 EPEX_MARKET = MARKET_GB
 EPEX_PRODUCT = PROD_HOUR
 CSS_TABLE_SELECTOR = "table.table-01 tbody tr"
-EXPECTED_ROW_COUNTS = {23, 24, 25}
+EXPECTED_ROW_COUNTS = {46, 48, 50}
 
 
 @dataclass(frozen=True)
 class DARow:
-    hour: str                     # "00:00", "01:00", …
+    hh: str                       # "00:00", "00:30", …
     buy_volume: Optional[float]
     sell_volume: Optional[float]
     volume: Optional[float]
@@ -70,10 +70,10 @@ def extract_rows_from_dom(page) -> List[DARow]:
         nums = [as_float_or_none(x) for x in cells]
         while len(nums) < 4:
             nums.append(None)
-        hour_label = f"{i:02d}:00"
+        hour_label = f"{i // 2:02d}:{(i % 2) * 30:02d}"
         da_rows.append(
             DARow(
-                hour=hour_label,
+                hh=hour_label,
                 buy_volume=nums[0],
                 sell_volume=nums[1],
                 volume=nums[2],
@@ -92,7 +92,7 @@ def write_rows_to_template(
     ws = wb.worksheets[0]
 
     for i, r in enumerate(rows, start=start_row):
-        ws.cell(row=i, column=1, value=r.hour)
+        ws.cell(row=i, column=1, value=r.hh)
         ws.cell(row=i, column=2, value=r.buy_volume)
         ws.cell(row=i, column=3, value=r.sell_volume)
         ws.cell(row=i, column=4, value=r.volume)
@@ -137,7 +137,7 @@ def run(url: str, template: str, out: str, timeout_ms: int = 30000) -> None:
 
         if len(rows) not in EXPECTED_ROW_COUNTS:
             logging.warning(
-                "Unexpected row count %d (expected 23, 24 or 25); proceeding anyway.",
+                "Unexpected row count %d (expected 46, 48 or 50); proceeding anyway.",
                 len(rows),
             )
 
@@ -151,10 +151,9 @@ def run(url: str, template: str, out: str, timeout_ms: int = 30000) -> None:
 def get_epex_url(market: str, date: str, product: int) -> str:
     return (
         f"https://www.epexspot.com/en/market-results"
-        f"?market_area={market}&auction={market}"
+        f"?market_area={market}&auction=30-call-{market}"
         f"&trading_date={date}&delivery_date={date}"
         f"&underlying_year=&modality=Auction&sub_modality=DayAhead&technology=&data_mode=table&period=&production_period="
-        #f"&modality=Auction&data_mode=table&product={product}"
     )
 
 

@@ -1,12 +1,12 @@
-name: Collect Tomorrow (DA Hourly)
-description: Collects EPEX Spot GB Day-Ahead hourly auction prices for tomorrow and uploads the results as an artifact and to Azure Blob Storage.
+name: Collect Tomorrow (DA HH)
+description: Collects EPEX Spot GB Day-Ahead Auction half-hourly prices for tomorrow and uploads the results as an artifact and to Azure Blob Storage.
 
 on:
   # Allows manual trigger
   workflow_dispatch:
   schedule:
-    # Runs at 09:35 every day (London time)
-    - cron: '35 9 * * *'
+    # Runs at 15:50 every day (London time)
+    - cron: '50 15 * * *'
       time-zone: 'Europe/London'
 
 jobs:
@@ -35,17 +35,17 @@ jobs:
         run: |
           .\.env\Scripts\activate
           $date = $(Get-Date (Get-Date).AddDays(1) -Format 'yyyy-MM-dd')
-          py scrape_epex_da.py --date "$date" --template template-da.xlsx --out "EpexSpotDA-${date}.xlsx"
+          py scrape_epex_da_hh.py --date "$date" --template template-da-hh.xlsx --out "EpexSpotDA-HH-${date}.xlsx"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: EPEX-Spot-DA-Results
-          path: EpexSpotDA-*.xlsx
+          name: EPEX-Spot-DA-HH-Results
+          path: EpexSpotDAHH-*.xlsx
           retention-days: 2
 
       - uses: fixpoint/azblob-upload-artifact@v4
         with:
           connection-string: ${{ secrets.AZURE_CONNECTION_STRING }}
-          name: epex-spot-da-results
-          path: EpexSpotDA-*.xlsx
+          name: epex-spot-da-hh-results
+          path: EpexSpotDAHH-*.xlsx
