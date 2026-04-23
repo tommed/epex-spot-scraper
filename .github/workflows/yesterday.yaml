@@ -58,6 +58,6 @@ jobs:
           github-token: ${{ github.token }}
           ms-teams-webhook-uri: ${{ secrets.TEAMS_WEBHOOK }}
           notification-summary: EPEX Spot GB Continuous (VWAP) Market Results Collected
-          notification-color: 17a2b8
+          notification-color: 28a745
           timezone: Europe/London
           verbose-logging: true
