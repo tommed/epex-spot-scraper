@@ -12,7 +12,7 @@ on:
   schedule:
     # Runs at 09:35 every day (London time)
     - cron: '35 9 * * *'
-      time-zone: 'Europe/London'
+      timezone: 'Europe/London'
 
 jobs:
   scrape:
