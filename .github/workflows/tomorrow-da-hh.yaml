@@ -4,9 +4,9 @@ description: Collects EPEX Spot GB Day-Ahead Auction half-hourly prices for tomo
 on:
   workflow_dispatch:
   schedule:
-    # Runs at 15:50 every day (London time)
-    - cron: '48 15 * * *'
-      timezone: 'Europe/London'
+    # Runs at 15:48 every day (London time)
+    # As all schedules are in UTC
+    - cron: '48 14 * * *'
 
 jobs:
   scrape:

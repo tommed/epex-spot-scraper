@@ -5,8 +5,8 @@ on:
   workflow_dispatch: 
   schedule:
     # Runs at 09:35 every day (London time)
-    - cron: '35 9 * * *'
-      timezone: 'Europe/London'
+    # As all schedules are in UTC
+    - cron: '35 8 * * *'
 
 jobs:
   scrape:
