@@ -2,13 +2,7 @@ name: Collect Tomorrow (DA Hourly)
 description: Collects EPEX Spot GB Day-Ahead hourly auction prices for tomorrow and uploads the results as an artifact and to Azure Blob Storage.
 
 on:
-  # Allows manual trigger
-  workflow_dispatch:
-    inputs:
-      date:
-        description: 'Date to scrape (yyyy-MM-dd). Defaults to tomorrow if not provided.'
-        required: false
-        type: string
+  workflow_dispatch: 
   schedule:
     # Runs at 09:35 every day (London time)
     - cron: '35 9 * * *'
@@ -39,8 +33,7 @@ jobs:
       - name: Run scrape script with tomorrow's date
         run: |
           .\.env\Scripts\activate
-          $inputDate = "${{ github.event.inputs.date }}"
-          if ($inputDate -ne "") { $date = $inputDate } else { $date = $(Get-Date (Get-Date).AddDays(1) -Format 'yyyy-MM-dd') }
+          $date = $(Get-Date (Get-Date).AddDays(1) -Format 'yyyy-MM-dd')
           py scrape_epex_da.py --date "$date" --template template-da.xlsx --out "EpexSpotDA-${date}.xlsx"
 
       - name: Upload artifact
