@@ -1,0 +1,60 @@
+name: Collect Today (IDA2)
+description: Collects EPEX Spot GB Intraday Auction 2 half-hourly prices for today and uploads the results as an artifact and to Azure Blob Storage.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Runs at 09:35 CET (08:35 UTC) every day, after IDA2 results are published
+    - cron: '35 8 * * *'
+
+jobs:
+  scrape:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Create virtual environment
+        run: py -3.12 -m venv .env
+
+      - name: Activate venv and install dependencies
+        run: |
+          .\.env\Scripts\activate
+          py -m pip install -r requirements.txt
+          py -m playwright install chromium
+
+      - name: Run scrape script with today's date
+        run: |
+          .\.env\Scripts\activate
+          $date = $(Get-Date -Format 'yyyy-MM-dd')
+          py scrape_epex_da_ida2.py --date "$date" --template template-da-hh.xlsx --out "EpexSpotIDA2-${date}.xlsx" --timeout-ms 60000
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EPEX-Spot-IDA2-Results
+          path: EpexSpotIDA2-*.xlsx
+          retention-days: 2
+          if-no-files-found: error
+
+      - uses: fixpoint/azblob-upload-artifact@v4
+        with:
+          connection-string: ${{ secrets.AZURE_CONNECTION_STRING }}
+          name: epex-spot-ida2-results
+          path: EpexSpotIDA2-*.xlsx
+
+      - name: Teams alert
+        uses: jdcargile/ms-teams-notification@v1.4
+        with:
+          github-token: ${{ github.token }}
+          ms-teams-webhook-uri: ${{ secrets.TEAMS_WEBHOOK }}
+          notification-summary: EPEX Spot GB IDA2 Market Results Collected
+          notification-color: 28a745
+          timezone: Europe/London
+          verbose-logging: true
