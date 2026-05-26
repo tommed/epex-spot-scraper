@@ -1,0 +1,61 @@
+name: Collect Tomorrow (NO2 DA QH)
+description: Collects EPEX Spot NO2 MRC Day-Ahead 15-min auction prices for tomorrow and uploads the results as an artifact and to Azure Blob Storage.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Runs at 12:15 BST (11:15 UTC) every day
+    # Results typically published by 11:45 BST (12:45 CET)
+    - cron: '15 11 * * *'
+
+jobs:
+  scrape:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Create virtual environment
+        run: py -3.12 -m venv .env
+
+      - name: Activate venv and install dependencies
+        run: |
+          .\.env\Scripts\activate
+          py -m pip install -r requirements.txt
+          py -m playwright install chromium
+
+      - name: Run scrape script with today's date (delivery = tomorrow)
+        run: |
+          .\.env\Scripts\activate
+          $date = $(Get-Date -Format 'yyyy-MM-dd')
+          py scrape_epex_da_qh_no2.py --trading-date "$date" --template template-da-qh.xlsx --out "EpexSpotDA-NO2-QH-${date}.xlsx"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EPEX-Spot-DA-NO2-QH-Results
+          path: EpexSpotDA-NO2-QH-*.xlsx
+          retention-days: 2
+          if-no-files-found: error
+
+      - uses: fixpoint/azblob-upload-artifact@v4
+        with:
+          connection-string: ${{ secrets.AZURE_CONNECTION_STRING }}
+          name: epex-spot-da-no2-qh-results
+          path: EpexSpotDA-NO2-QH-*.xlsx
+
+      - name: Teams alert
+        uses: jdcargile/ms-teams-notification@v1.4
+        with:
+          github-token: ${{ github.token }}
+          ms-teams-webhook-uri: ${{ secrets.TEAMS_WEBHOOK }}
+          notification-summary: EPEX Spot NO2 DA QH Market Results Collected
+          notification-color: 28a745
+          timezone: Europe/London
+          verbose-logging: true
