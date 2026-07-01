@@ -72,7 +72,7 @@ def post_webhook_payload(payload: dict) -> None:
         logging.warning("SIGNALS_WEBHOOK_URL not set; skipping webhook POST.")
         return
     data = json.dumps(payload).encode("utf-8")
-    print(f"Posting webhook payload to {url}:\n{json.dumps(payload, indent=2)}")
+    #print(f"Posting webhook payload to {url}:\n{json.dumps(payload, indent=2)}")
     req = urllib.request.Request(
         url,
         data=data,
