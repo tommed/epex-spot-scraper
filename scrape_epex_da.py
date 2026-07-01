@@ -20,6 +20,8 @@ from typing import List, Optional, Sequence
 from openpyxl import load_workbook
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
+from push_timeseries_webhook import build_timeseries_payload, post_webhook_payload
+
 MARKET_GB = "GB"
 PROD_HOUR = 60
 EPEX_MARKET = MARKET_GB
@@ -101,7 +103,7 @@ def write_rows_to_template(
     wb.save(out_path)
 
 
-def run(url: str, template: str, out: str, timeout_ms: int = 30000) -> None:
+def run(url: str, template: str, out: str, timeout_ms: int = 30000) -> List[DARow]:
     logging.info("Navigating to %s", url)
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, args=["--disable-blink-features=AutomationControlled"])
@@ -147,6 +149,8 @@ def run(url: str, template: str, out: str, timeout_ms: int = 30000) -> None:
         context.close()
         browser.close()
 
+        return rows
+
 
 def get_epex_url(market: str, date: str, product: int) -> str:
     return (
@@ -175,4 +179,14 @@ if __name__ == "__main__":
         format="%(levelname)s: %(message)s",
     )
     url = get_epex_url(EPEX_MARKET, args.date, EPEX_PRODUCT)
-    run(url, args.template, args.out, timeout_ms=args.timeout_ms)
+    rows = run(url, args.template, args.out, timeout_ms=args.timeout_ms)
+
+    time_values = [(r.hour, r.price) for r in rows]
+    payload = build_timeseries_payload(
+        event_id="da-prices",
+        delivery_date=args.date,
+        mtu="1h",
+        zone=MARKET_GB.lower(),
+        time_values=time_values,
+    )
+    post_webhook_payload(payload)
