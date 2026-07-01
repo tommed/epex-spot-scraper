@@ -8,6 +8,9 @@ on:
     # As all schedules are in UTC
     - cron: '48 14 * * *'
 
+env:
+  SIGNALS_WEBHOOK_URL: ${{ secrets.SIGNALS_WEBHOOK_URL }}
+
 jobs:
   scrape:
     runs-on: windows-latest

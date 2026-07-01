@@ -8,6 +8,9 @@ on:
     # Results typically published by 11:45 BST (12:45 CET)
     - cron: '15 11 * * *'
 
+env:
+  SIGNALS_WEBHOOK_URL: ${{ secrets.SIGNALS_WEBHOOK_URL }}
+
 jobs:
   scrape:
     runs-on: windows-latest

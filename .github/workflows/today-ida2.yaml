@@ -7,6 +7,9 @@ on:
     # Runs at 09:35 CET (08:35 UTC) every day, after IDA2 results are published
     - cron: '35 8 * * *'
 
+env:
+  SIGNALS_WEBHOOK_URL: ${{ secrets.SIGNALS_WEBHOOK_URL }}
+
 jobs:
   scrape:
     runs-on: windows-latest
