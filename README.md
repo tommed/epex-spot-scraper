@@ -36,4 +36,4 @@ $EpexDate=$(Get-Date (Get-Date).AddDays(-1) -Format 'yyyy-MM-dd')
 py scrape_epex_continuous.py --date "$EpexDate" --template template-continuous.xlsx --out "EpexSpotMarketResults-${EpexDate}.xlsx"
 ```
 
-Bump: 6th Apr 2026 (keeps nightly job running)
+Bump: 24th Apr 2026 (keeps nightly job running)
