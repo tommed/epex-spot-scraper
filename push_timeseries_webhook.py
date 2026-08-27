@@ -67,10 +67,23 @@ def post_webhook_payload(payload: dict) -> None:
     environment variable.  Logs a warning and returns silently if the variable
     is not set.  HTTP errors are logged but do not raise.
     """
-    url = os.environ.get("SIGNALS_WEBHOOK_URL")
-    if not url:
-        logging.warning("SIGNALS_WEBHOOK_URL not set; skipping webhook POST.")
-        return
+    # Staging
+    staging_url = os.environ.get("SIGNALS_WEBHOOK_URL")
+    if staging_url:
+        logging.info("SIGNALS_WEBHOOK_URL set; sending to webhook")
+        post_webhook_payload_to_webhook(staging_url, payload)
+    # Production
+    production_url = os.environ.get("SIGNALS_PROD_WEBHOOK_URL")
+    if production_url:
+            logging.info("SIGNALS_PROD_WEBHOOK_URL set; sending to webhook")
+            post_webhook_payload_to_webhook(production_url, payload)
+
+
+def post_webhook_payload_to_webhook(url: str, payload: dict) -> None:
+    """
+    POST *payload* as JSON to the URL. Logs a warning and returns silently if the variable
+    is not set.  HTTP errors are logged but do not raise.
+    """
     data = json.dumps(payload).encode("utf-8")
     #print(f"Posting webhook payload to {url}:\n{json.dumps(payload, indent=2)}")
     req = urllib.request.Request(
