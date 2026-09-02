@@ -9,6 +9,7 @@ on:
 
 env:
   SIGNALS_WEBHOOK_URL: ${{ secrets.SIGNALS_WEBHOOK_URL }}
+  SIGNALS_PROD_WEBHOOK_URL: ${{ secrets.SIGNALS_PROD_WEBHOOK_URL }}
 
 jobs:
   scrape:
